@@ -1,0 +1,278 @@
+---
+title: "Atividade (exemplo de relatório) Seleção Estágio TCU"
+author: "Augusto Cesar Ribeiro Nunes"
+date: "20 de março de 2015"
+output: pdf_document
+---
+```{r, message=FALSE, echo=FALSE, warning=FALSE}
+require(ggplot2)
+require(Hmisc)
+require(gridExtra)
+dados <- read.csv("bancodedados.csv", sep="\t")
+attach(dados)
+sexo <- factor(dados$sexo, levels = c(1,2), labels = c("Masculino", "Feminino"))
+localdomicilio <- factor(dados$localdomicilio, levels = c(1,2), labels = c("Urbano", "Rural"))
+especiedomicilio <- factor(dados$especiedomicilio, levels = c(1,2,3,4), labels = c("Particular permanente", "Particular improvisado", "Alugado", "Coletivo"))
+pavimentacao <- factor(dados$pavimentacao, levels = c(1,2,3), labels = c("Total", "Parcial", "Não existe"))
+idade.cat <- list()
+idade.cat[1] <- idade[which(idade >= 19 & idade <= 26)]
+idade.cat[2] <- idade[which(idade > 27 & idade <= 36)]
+idade.cat[3] <- idade[which(idade > 37 & idade <= 46)]
+idade.cat[4] <- idade[which(idade > 47 & idade <= 56)]
+idade.cat[5] <- idade[which(idade > 57 & idade <= 66)]
+idade.cat[6] <- idade[which(idade > 67 & idade <= 76)]
+idade.cat[7] <- idade[which(idade > 77 )]
+
+``` 
+# Introdução / Objetivo {#intro}
+Este relatório trata-se ferramenta de análise descritiva de uma amostra 
+da Pesquisa XXXX, com o objetivo de ...
+
+# Metodologia de Amostragem {#amost}
+A amostra foi selecionada de acordo com o critério/técnica ????, a partir de dados da Pesquisa XXXX, publicada no repositório ???? e com Banco de Dados disponível em ????. A base de dados foi devidamente anonimizada.
+
+# Descrição Base de Dados {#descbase}
+Composta pelo conjunto de 852 observações das 7 variáveis a seguir:
+
+* **id**: Número do Questionário 
+* **sexo**: Gênero do respondente, com duas categorias:
+     + *Masculino*
+     + *Feminino*
+* **idade**: Idade do respondente, em anos completos quando da resposta ao questionário (????)
+* **localdomicilio**: Local do Domicílio (quanto à classificação da área que ocupa majoritariamente?), com duas categorias:
+     + *Urbano*
+     + *Rural*
+* **especiedomicilio**: Espécie do domicílio, com quatro categorias:
+     + *Particular permanente*
+     + *Particular improvisado*
+     + *Alugado*
+     + *Coletivo*
+* **qtdcomodos**: Número de cômodos do domicílio
+* **pavimentacao**: Se existe calçamento/pavimentação em frente ao domicílio, com três categorias:
+     + *Total*
+     + *Parcial*
+     + *Não existe*
+
+Estrutura da Base de Dados
+```{r, echo=FALSE}
+
+knitr::kable(str(dados))
+```
+
+# Descrição dos respondentes na amostra 
+
+## Quanto ao gênero 
+```{r, echo=FALSE}
+describe(sexo)
+qplot(sexo, xlab="", ylab="", main="Distribuição por gênero na amostra")
+```
+
+A leve discrepância entre o percentual de homens e mulheres e a relação observada pelo Censo Demográfico, mas nada considerável. 
+
+## Quanto à idade 
+
+```{r, echo=FALSE}
+describe(idade, "Descrição por idade")
+qplot(idade, xlab="", ylab="", main="Distribuição das idades na amostra") + geom_bar()
+qplot(idade, xlab="", ylab="", main="Distribuição das idades na amostra \n(Estimação da Distribuição usando Método do Kernel", geom="density")
+```
+
+Mediana alta (50 anos), pode ser explicada se essa amostra apresentar um número considerável de proprietários de imóveis e/ou moradores de regiões ou bairros cuja população seja constituída de mais velhos (exemplo de RAs do DF como Lago Sul e Lago Norte). 
+
+A amplitude de idades também é grande, 62 anos de idade.
+
+## Quanto ao local de domicílio 
+```{r, echo=FALSE}
+describe(localdomicilio, descript = "Descrição por local do domicílio")
+qplot(localdomicilio, xlab="", ylab="", main="Distribuição quanto ao local de domicílio na amostra") + geom_bar()
+```
+
+## Quanto à espécie do domicílio 
+```{r, echo=FALSE}
+describe(especiedomicilio, descript = "Descrição por espécie do domicílio")
+qplot(especiedomicilio, xlab="", ylab="", main="Distribuição das espécies de domicílios na amostra") + geom_bar()
+```
+
+Similarmente ao que ocorreu com as idades, uma discreta diferença entre o percentual de domicílios urbanos e domicílios rurais, o que não é completamente fidedigno à composição por entorno dos domicílios no Brasil: 96,9% dos domicílios particulares permanentes são urbanos. Esta discrepância pode ser explicada por uma diferença de metodologia ou por uma casualidade amostral (Plano Amostral e Planejamento de Pesquisa desconhecidos)
+
+## Quanto à quantidade de cômodos 
+```{r, echo=FALSE}
+describe(qtdcomodos, descript="Descrição por quantidade de cômodos")
+qplot(qtdcomodos, xlab="", ylab="", main="Distribuição das quantidades de cômodos na amostra")
+```
+
+
+## Quanto à pavimentação  
+```{r, echo=FALSE}
+describe(pavimentacao)
+qplot(pavimentacao, xlab="", ylab="", main="Distribuição das pavimentações na amostra") + geom_bar()
+```
+
+
+# Análise de relação entre gênero e demais variáveis 
+
+## Gênero x Idade 
+
+```{r, echo=FALSE}
+qplot(factor(sexo), idade, geom="boxplot", xlab="", main="Distribuição de Idades de acordo com o sexo")
+## ggplot(dados, aes(x=sexo[which(sexo = "Masculino")], y=idade))  + geom_point()
+```
+
+Média de idade dos homens superior à das mulheres, mas não tão marcadamente. 
+
+## Gênero x Local do Domicílio 
+```{r,echo=FALSE}
+  plot1 <- qplot(localdomicilio[which(sexo == "Masculino")] , main="Distribuição do local de domicílio entre os homens na amostra", geom="bar", xlab="", ylab="" )
+  plot2 <- qplot(localdomicilio[which(sexo == "Feminino")], main="Distribuição do local de domicílio entre as mulheres na amostra", xlab="", ylab="" )
+  grid.arrange(plot1, plot2, ncol=1)
+```
+
+Nenhuma diferença marcante entre o local de domicílios de homens e mulheres respondentes na amostra. 
+
+## Gênero x Espécie do Domicílio 
+```{r,echo=FALSE}
+  plot1 <- qplot(especiedomicilio[which(sexo == "Masculino")] , main="Distribuição da espécie de domicílio entre os homens na amostra", geom="bar", xlab="", ylab="" )
+  plot2 <- qplot(especiedomicilio[which(sexo == "Feminino")], main="Distribuição da espécie de domicílio entre as mulheres na amostra", xlab="", ylab="" )
+  grid.arrange(plot1, plot2, ncol=1)
+```
+
+  A distribuição de domicílios também não apresenta nada digno de nota quando é discriminada pelo gênero do respondente.
+
+## Gênero x Quantidade de Cômodos 
+```{r,echo=FALSE}
+  plot1 <- qplot(qtdcomodos[which(sexo == "Masculino")] , main="Distribuição da quantidade de cômodos\no entre os homens na amostra", geom="bar", xlab="", ylab="" )
+  plot2 <- qplot(qtdcomodos[which(sexo == "Feminino")], main="Distribuição da quantidade de cômodos\n entre as mulheres na amostra", xlab="", ylab="" )
+  grid.arrange(plot1, plot2, ncol=1)
+```
+
+  Aqui sim uma diferença mais marcante, uma proprorção maior de mulheres vive em domicílios com menos cômodos, como se uma distribuição fosse praticamente anti-simétrica à outra.
+
+
+## Gênero x Pavimentação
+```{r,echo=FALSE}
+  plot1 <- qplot(pavimentacao[which(sexo == "Masculino")] , main="Distribuição da qualidade da pavimentação\n entre os homens na amostra", geom="bar", xlab="", ylab="" )
+  plot2 <- qplot(pavimentacao[which(sexo == "Feminino")], main="Distribuição da qualidade da pavimentação\n entre as mulheres na amostra", xlab="", ylab="" )
+  grid.arrange(plot1, plot2, ncol=1)
+```
+
+  Mais uma vez um déficit qualitativo entre os gêneros. Menos mulheres respodentes vivem em domicílios com pavimentação total.
+
+
+
+
+# Análise da relação entre a idade e as demais variáveis
+
+  Para enriquecer a análise, usaremos classes de idade da seguinte forma
+  
+  Idade(anos)   |   Quantidade    
+  --------------|-----------------
+  19 - 26 anos  |               19
+  27 - 36 anos  |               33
+  37 - 46 anos  |               41
+  47 - 56 anos  |               48
+  57 - 66 anos  |               58
+  67 - 76 anos  |               75
+  76 e mais     |               81
+
+## Idade x Local do Domicílio
+```{r,echo=FALSE}
+  plot1 <- qplot(localdomicilio[which(idade >= 19 & idade <= 26)] , main="Distribuição local de domicílio \npor classe de idades\n (de 19 a 26 anos de idade)", geom="bar", xlab="", ylab="" )
+  plot2 <- qplot(localdomicilio[which(idade >= 27 & idade <= 36)] , main="Distribuição local de domicílio \npor classe de idades\n (de 27 a 36 anos de idade)", geom="bar", xlab="", ylab="" )
+  plot3 <- qplot(localdomicilio[which(idade >= 37 & idade <= 46)] , main="Distribuição local de domicílio \npor classe de idades\n (de 37 a 46 anos de idade)", geom="bar", xlab="", ylab="" )
+  plot4 <- qplot(localdomicilio[which(idade >= 47 & idade <= 56)] , main="Distribuição do local de domicílio \npor classe de idades\n (de 47 a 56 anos de idade)", geom="bar", xlab="", ylab="" )
+  plot5 <- qplot(localdomicilio[which(idade >= 57 & idade <= 66)] , main="Distribuição do local de domicílio \npor classe de idades\n (de 57 a 66 anos de idade)", geom="bar", xlab="", ylab="" )
+  plot6 <- qplot(localdomicilio[which(idade >= 67 & idade <= 76)] , main="Distribuição do local de domicílio \npor classe de idades\n (de 67 a 76 anos de idade)", geom="bar", xlab="", ylab="" )
+  plot7 <- qplot(localdomicilio[which(idade >= 77)] , main="Distribuição local de domicílio \npor classe de idades\n (acima de 77 anos de idade)", geom="bar", xlab="", ylab="" )
+  grid.arrange(plot1,plot2,plot3,plot4, ncol=2)
+  grid.arrange(plot5,plot6,plot7, ncol=2)
+```
+
+  Não há nenhum comportamento sistemático marcante de discriminação do local de moradia por classe de idade, exceto pela classe de 37 a 46 anos de idade, que tem menos pessoas morando em local urbano do que em local rural - ao contrário do que ocorre em todas as outras classes. 
+  Pode ser uma mera casualidade amostral, e muito provavelmente é, já que, como foi dito, este cenário não é observado em nenhuma outra classe de idade.
+
+## Idade x Espécie do Domicílio
+
+```{r,echo=FALSE}
+  plot1 <- qplot(especiedomicilio[which(idade >= 19 & idade <= 26)] , main="Distribuição da espécie de domicílio \npor classe de idades\n (de 19 a 26 anos de idade)", geom="bar", xlab="", ylab="" )
+  plot2 <- qplot(especiedomicilio[which(idade >= 27 & idade <= 36)] , main="Distribuição da espécie de domicílio \npor classe de idades\n (de 27 a 36 anos de idade)", geom="bar", xlab="", ylab="" )
+  plot3 <- qplot(especiedomicilio[which(idade >= 37 & idade <= 46)] , main="Distribuição da espécie de domicílio \npor classe de idades\n (de 37 a 46 anos de idade)", geom="bar", xlab="", ylab="" )
+  plot4 <- qplot(especiedomicilio[which(idade >= 47 & idade <= 56)] , main="Distribuição da espécie de domicílio \npor classe de idades\n (de 47 a 56 anos de idade)", geom="bar", xlab="", ylab="" )
+  plot5 <- qplot(especiedomicilio[which(idade >= 57 & idade <= 66)] , main="Distribuição da espécie de domicílio \npor classe de idades\n (de 57 a 66 anos de idade)", geom="bar", xlab="", ylab="" )
+  plot6 <- qplot(especiedomicilio[which(idade >= 67 & idade <= 76)] , main="Distribuição da espécie de domicílio \npor classe de idades\n (de 67 a 76 anos de idade)", geom="bar", xlab="", ylab="" )
+  plot7 <- qplot(especiedomicilio[which(idade >= 77)] , main="Distribuição da espécie de domicílio \npor classe de idades\n (acima de 77 anos de idade)", geom="bar", xlab="", ylab="" )
+  grid.arrange(plot1,plot2, ncol=1)
+  grid.arrange(plot3,plot4, ncol=1)
+  grid.arrange(plot5,plot6,plot7, ncol=1)
+```
+
+  Apenas olhando os gráficos já nota-se uma sugestão de tendência nos indivíduos dessa amostra, ao passar dos anos, as pessoas vão migrando de domicílios que se enquadram nas categorias Particular Permanente/Improvisado (de 19 a 26 anos de idade), para Alugado/Coletivo (27 a 36 anos), de volta para domicílios particulares (37 a 46), e no fim da vida, para domicílios Coletivos novamente.
+  É claro que esta é apenas uma especulação dada a estatística descritiva, deveria ser feito um estudo de coortes (longitudinal) para chegar a resultados mais concretos. Mas uma boa indicação. No entanto, o teste $\chi^2$ nos dá o seguinte resultado:
+  
+```{r}
+  chisq.test(idade,especiedomicilio)
+```
+
+  Isto é, é significativa a associação entre a idade e a espécie do domicílio do respondente.
+  
+## Idade x Quantidade de Cômodos
+
+```{r,echo=FALSE}
+  plot1 <- qplot(qtdcomodos[which(idade >= 19 & idade <= 26)] , main="Distribuição da quantidade de cômodos \npor classe de idades\n (de 19 a 26 anos de idade)", geom="bar", xlab="", ylab="" )
+  plot2 <- qplot(qtdcomodos[which(idade >= 27 & idade <= 36)] , main="Distribuição da quantidade de cômodos \npor classe de idades\n (de 27 a 36 anos de idade)", geom="bar", xlab="", ylab="" )
+  plot3 <- qplot(qtdcomodos[which(idade >= 37 & idade <= 46)] , main="Distribuição da quantidade de cômodos \npor classe de idades\n (de 37 a 46 anos de idade)", geom="bar", xlab="", ylab="" )
+  plot4 <- qplot(qtdcomodos[which(idade >= 47 & idade <= 56)] , main="Distribuição da quantidade de cômodos \npor classe de idades\n (de 47 a 56 anos de idade)", geom="bar", xlab="", ylab="" )
+  plot5 <- qplot(qtdcomodos[which(idade >= 57 & idade <= 66)] , main="Distribuição da quantidade de cômodos \npor classe de idades\n (de 57 a 66 anos de idade)", geom="bar", xlab="", ylab="" )
+  plot6 <- qplot(qtdcomodos[which(idade >= 67 & idade <= 76)] , main="Distribuição da quantidade de cômodos \npor classe de idades\n (de 67 a 76 anos de idade)", geom="bar", xlab="", ylab="" )
+  plot7 <- qplot(qtdcomodos[which(idade >= 77)] , main="Distribuição da quantidade de cômodos \npor classe de idades\n (acima de 77 anos de idade)", geom="bar", xlab="", ylab="" )
+  grid.arrange(plot1,plot2, ncol=2)
+  grid.arrange(plot3,plot4, ncol=2)
+  grid.arrange(plot5,plot6,plot7, ncol=2)
+```
+
+  Aqui, a sugestão de tendência é que mais jovens e mais idosos tendem a viver em domicílios com número menor de cômodos. Aqueles que pertencem as classes de idade intermediária, talvez pelo fato de terem estabelecido família - e em particular, terem filhos - precisam de domicílos maiores. 
+  Utilizando mais uma vez um teste de hipóteses não-paramétrico - desta vez a _Correlação Produto - Momento de Pearson_ - desta vez concluimos que a correlação sugerida pelos gráficos não se sustenta na amostra.
+  
+```{r}
+  cor.test(qtdcomodos,idade)
+```
+
+## Idade x Pavimentação 
+
+```{r,echo=FALSE}
+  plot1 <- qplot(pavimentacao[which(idade >= 19 & idade <= 26)] , main="Distribuição da qualidade da pavimentação\npor classe de idades\n (de 19 a 26 anos de idade)", geom="bar", xlab="", ylab="" )
+  plot2 <- qplot(pavimentacao[which(idade >= 27 & idade <= 36)] , main="Distribuição da qualidade da pavimentação\npor classe de idades\n (de 27 a 36 anos de idade)", geom="bar", xlab="", ylab="" )
+  plot3 <- qplot(pavimentacao[which(idade >= 37 & idade <= 46)] , main="Distribuição da qualidade da pavimentação\npor classe de idades\n (de 37 a 46 anos de idade)", geom="bar", xlab="", ylab="" )
+  plot4 <- qplot(pavimentacao[which(idade >= 47 & idade <= 56)] , main="Distribuição da qualidade da pavimentação\npor classe de idades\n (de 47 a 56 anos de idade)", geom="bar", xlab="", ylab="" )
+  plot5 <- qplot(pavimentacao[which(idade >= 57 & idade <= 66)] , main="Distribuição da qualidade da pavimentação\npor classe de idades\n (de 57 a 66 anos de idade)", geom="bar", xlab="", ylab="" )
+  plot6 <- qplot(pavimentacao[which(idade >= 67 & idade <= 76)] , main="Distribuição da qualidade da pavimentação\npor classe de idades\n (de 67 a 76 anos de idade)", geom="bar", xlab="", ylab="" )
+  plot7 <- qplot(pavimentacao[which(idade >= 77)] , main="Distribuição da qualidade da pavimentação\npor classe de idades\n (acima de 77 anos de idade)", geom="bar", xlab="", ylab="" )
+  grid.arrange(plot1,plot2, ncol=2)
+  grid.arrange(plot3,plot4, ncol=2)
+  grid.arrange(plot5,plot6,plot7, ncol=2)
+```
+
+Utilizando novamente o teste $\chi^2$, concluímos que não há significância considerável na relação entre a idade e o tipo de pavimentação.
+
+```{r}
+  chisq.test(idade, pavimentacao)
+```
+
+
+# Análises de Regressão
+
+## A Idade influencia na espécie e local do domicílio?
+```{r, echo=FALSE}
+  regressao1 = lm(idade~localdomicilio+especiedomicilio)
+  summary(regressao1)
+```
+
+A única relação com discreta significância é entre a Idade e o Domicílio Coletivo.
+
+## A Idade influencia no tipo de pavimentação e no número de cômodos?
+```{r, echo=FALSE}
+  regressao2 = lm(idade~pavimentacao+qtdcomodos)
+  summary(regressao2)
+```
+
+O resultado da regressão nos diz que não há significância no relacionamento entre estas três variáveis.
+  
