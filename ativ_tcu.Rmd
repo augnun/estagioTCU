@@ -261,6 +261,7 @@ Utilizando novamente o teste $\chi^2$, concluímos que não há significância consi
 # Análises de Regressão
 
 ## A Idade influencia na espécie e local do domicílio?
+
 ```{r, echo=FALSE}
   regressao1 = lm(idade~localdomicilio+especiedomicilio)
   summary(regressao1)
@@ -269,6 +270,7 @@ Utilizando novamente o teste $\chi^2$, concluímos que não há significância consi
 A única relação com discreta significância é entre a Idade e o Domicílio Coletivo.
 
 ## A Idade influencia no tipo de pavimentação e no número de cômodos?
+
 ```{r, echo=FALSE}
   regressao2 = lm(idade~pavimentacao+qtdcomodos)
   summary(regressao2)
@@ -276,3 +278,10 @@ A única relação com discreta significância é entre a Idade e o Domicílio Coletiv
 
 O resultado da regressão nos diz que não há significância no relacionamento entre estas três variáveis.
   
+## O gênero influencia no tipo de pavimentação, local da moradia, ou número de cômodos?
+```{r, echo=FALSE}
+  regressao3 = lm(dados$sexo~pavimentacao+localdomicilio+qtdcomodos)
+  summary(regressao3)
+```
+  
+  O sexo influencia significativamente no número de cômodos, mulheres residem em moradias com menos cômodos.
